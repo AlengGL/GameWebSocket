@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  # mongodb 服務
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    environment:
+      - MONGO_INITDB_DATABASE=${DB_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
+    driver: local
