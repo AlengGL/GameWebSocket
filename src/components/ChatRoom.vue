@@ -2,46 +2,68 @@
     <div class="chat-room">
         <div class="chat-content">
             <div class="message-list">
-                <!-- 聊天消息内容 -->
-                <div v-for="(message, index) in messages" :key="index" :class="{ 'received': message.isReceived, 'sent': !message.isReceived }">
-                {{ message.content }}
+                <!-- 聊天内容 -->
+                <div
+                v-for="(message, index) in messages"
+                :key="index"
+                :class="getMessageClass(message)"
+                >
+                    {{ message.content }}
                 </div>
             </div>
             <div class="chat-input">
-                <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type your message..." />
+                <input
+                    v-model="newMessage"
+                    @keyup.enter="sendMessage"
+                    placeholder="Type your message..."
+                />
                 <button @click="sendMessage">Send</button>
             </div>
         </div>
     </div>
 </template>
-  
+
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, computed } from "vue";
+import { useStore } from "vuex";
 
 export default defineComponent({
     name: "ChatRoom",
-    data() {
-        return {
-        messages: [] as { content: string; isReceived: boolean }[],
-        newMessage: "",
+    setup() {
+        const store = useStore();
+        const newMessage = ref("");
+
+        const messages = computed(() => store?.state.websocket.messages || []);
+
+        const sendMessage = () => {
+            if (newMessage.value !== "") {
+                store?.dispatch("sendMessage", `chat ${newMessage.value}`);
+                newMessage.value = "";
+            }
         };
-    },
-    methods: {
-        sendMessage() {
-        if (this.newMessage.trim() !== "") {
-            // Assume sent messages
-            this.messages.push({ content: this.newMessage, isReceived: false });
-            this.newMessage = "";
-        }
-        },
+
+        const getMessageClass = (message: any) => {
+            console.log(message)
+            return {
+                received: message.isReceived,
+                sent: message.isSent,
+            };
+        };
+
+        return {
+            messages,
+            newMessage,
+            sendMessage,
+            getMessageClass,
+        };
     },
 });
 </script>
-  
+
 <style lang="scss" scoped>
 .chat-room {
+    max-height: 70vh;
     display: flex;
-    height: 100vh;
     border-right: solid;
     border-bottom: solid;
     border-top: solid;
@@ -53,25 +75,35 @@ export default defineComponent({
         overflow: hidden;
 
         .message-list {
-            flex: 1;
+            height: 50vh;
             overflow-y: auto;
             padding: 10px;
-            background-color: rgb(223, 223, 223);
+            display: flex;
+            flex-direction: column;
 
             div {
                 margin-bottom: 10px;
+                padding: 8px;
+                border-radius: 8px;
             }
-        }
 
-        .received {
-            align-self: flex-start;
-            background-color: #e0e0e0;
-        }
+            .received {
+                align-self: flex-start;
+                background-color: white;
+                max-width: 50%;
+                word-wrap: break-word;
+                text-align: left;
+            }
 
-        .sent {
-            align-self: flex-end;
-            background-color: #4caf50;
-            color: #fff;
+            .sent {
+                align-self: flex-end;
+                background-color: #4caf50;
+                color: #fff;
+                max-width: 50%;
+                word-wrap: break-word;
+                text-align: left;
+            }
+
         }
 
         .chat-input {
@@ -91,7 +123,5 @@ export default defineComponent({
             }
         }
     }
-
 }
 </style>
-  
