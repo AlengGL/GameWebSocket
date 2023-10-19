@@ -1,19 +1,19 @@
 var createError = require('http-errors');
 var express = require('express');
+const cors = require('cors');  // 引入 cors 模組
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require("mongoose");
 
 var usersRouter = require('./routes/users');
-var SomeModel = require('./models/users');
-
 
 var app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+/* 在所有路由前使用 cors 中間件 */
+app.use(cors({
+  origin: 'http://localhost:8080',
+  credentials: true,
+}));
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -30,16 +30,12 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
   res.status(err.status || 500);
-  res.json({ error: err.message }); // 输出错误信息为 JSON
+  res.json({ error: err.message });
 });
-
-
 
 mongoose.connect("mongodb://admin:nimda@127.0.0.1/my_database?authSource=admin");
 var mongoDB = mongoose.connection;
@@ -49,12 +45,5 @@ mongoDB.once('open', () => {
   console.log('MongoDB connection successful');
 });
 
-// SomeModel.insertMany(testData)
-//   .then(docs => {
-//     console.log('Test data inserted successfully:', docs);
-//   })
-//   .catch(err => {
-//     console.error('Error inserting test data:', err);
-//   });
 
 module.exports = app;
